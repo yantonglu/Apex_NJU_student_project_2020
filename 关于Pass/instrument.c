@@ -14,7 +14,7 @@ static void* memory_avoid_crash = NULL;
 void __instrument1(long id, unsigned long value) {
   
 char file_name[8];file_name[0]='e';file_name[1]='x';file_name[2]='e';
-file_name[3]='c';file_name[4]='.';file_name[5]='o';file_name[6]='u';file_name[7]='t';file_name[7]='\0';
+file_name[3]='c';file_name[4]='.';file_name[5]='o';file_name[6]='u';file_name[7]='t';file_name[8]='\0';
   char format[15];format[0]='(';format[1]='I';format[2]=' ';format[3]='%';format[4]='l';format[5]='d';format[6]=' ';format[7]='%';format[8]='l';format[9]='d';
 format[10]=' ';format[11]='1';format[12]=')';format[13]='\n';format[14]='\0';
   char open[2];
@@ -29,7 +29,7 @@ open[0]='w';open[1]='\0';
 
 void __instrument2(long id, unsigned long value) {
   char file_name[8];file_name[0]='e';file_name[1]='x';file_name[2]='e';
-file_name[3]='c';file_name[4]='.';file_name[5]='o';file_name[6]='u';file_name[7]='t';file_name[7]='\0';
+file_name[3]='c';file_name[4]='.';file_name[5]='o';file_name[6]='u';file_name[7]='t';file_name[8]='\0';
   char format[15];format[0]='(';format[1]='I';format[2]=' ';format[3]='%';format[4]='l';format[5]='d';format[6]=' ';format[7]='%';format[8]='l';format[9]='d';
 format[10]=' ';format[11]='2';format[12]=')';format[13]='\n';format[14]='\0';
   char open[2];
@@ -44,7 +44,7 @@ open[0]='w';open[1]='\0';
 void __main_args(void* ptr) {
 
   char file_name[8];file_name[0]='a';file_name[1]='r';file_name[2]='g';
-file_name[3]='s';file_name[4]='.';file_name[5]='o';file_name[6]='u';file_name[7]='t';file_name[7]='\0';
+file_name[3]='s';file_name[4]='.';file_name[5]='o';file_name[6]='u';file_name[7]='t';file_name[8]='\0';
   char format[8];format[0]='%';format[1]='l';format[2]='x';format[3]=' ';format[4]='%';format[5]='d';format[6]='\n';format[7]='\0';
   char open[2];
 open[0]='w';open[1]='\0';
