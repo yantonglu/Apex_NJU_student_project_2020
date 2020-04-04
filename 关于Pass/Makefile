@@ -1,12 +1,11 @@
-APEX=~/dachuang/apex
 CFLAGS=-g -O0 -include ${APEX}/llvm/common.h -Wall -Werror=implicit-function-declaration -fno-builtin -std=c99 -Wno-unused-variable -Wno-unused-value -DNDEBUG
 CLANG=clang
-OPT=~/dachuang/llvm/build/bin/opt -load ~/dachuang/llvm/build/lib/LLVMHello.so
-LLC=~/dachuang/llvm/build/bin/llc
-LINK=~/dachuang/llvm/build/bin/llvm-link
-DIS=~/dachuang/llvm/build/bin/llvm-dis
-LD=gcc
-CC=gcc
+OPT=${LLVM}/bin/opt -load ${LLVM}/lib/LLVMHello.so
+LLC=${LLVM}/bin/llc
+LINK=${LLVM}/bin/llvm-link
+DIS=${LLVM}/bin/llvm-dis
+LD=gcc -fPIC -no-pie
+CC=gcc -fPIC -no-pie
 T=$(shell basename $$PWD)
 
 .PHONY: all clean run build
@@ -17,7 +16,7 @@ build: exec cfg.out
 clean:
 	rm -f exec exec.org exec.asm src.o src.*.[so] *.bc *.ll *.out dot.[0123] cfg.out cfg.x stdout *.log
 
-exec: src.3.o 
+exec: src.4.o 
 	${CC} $^ -o $@ 
 
 asm.ll: src.3.bc
@@ -46,7 +45,7 @@ exec.out: exec input
 	-./exec $$(cat input)> stdout
 
 symb.out: exec exec.out cfg.out
-	${APEX}/script/symbexec.py -out symb.out -cfg /home/txb/dachuang/apex/models/x01/cfg.out -llvm /home/txb/dachuang/apex/models/x01/llvm.out -exec /home/txb/dachuang/apex/models/x01/exec.out -args /home/txb/dachuang/apex/models/x01/args.out
+	${APEX}/script/symbexec.py -out symb.out -cfg ./cfg.out -llvm ./llvm.out -exec ./exec.out -args ./args.out
 
 input: ../input
 	ln -fs $< $@

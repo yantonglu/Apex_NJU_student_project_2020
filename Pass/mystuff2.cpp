@@ -35,11 +35,13 @@ static int id = 1;
 STATISTIC(HelloCounter, "Counts number of functions greeted");
 
 void insert_globalvar(Module &M);
-void insert_func(Module &M, Function *F);
+//void insert_func(Module &M, Function *F);
+void insert_basicblock(Module &M, BasicBlock *BB);
 void insert_ret(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator BI);
 void insert_main_args1(Module &M, Function *F);
 void insert_main_args2(Module &M, Function *F);
 void insert_localvar(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator BI);
+void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI);
 
 static Value **group; //ID part
 static int cur = 0;
@@ -61,12 +63,12 @@ struct mystuff2 : public ModulePass
 	{
 		init(M);
 
-		errs() << "初始化完成\n";
-		errs() << "开始遍历函数\n";
+		//errs() << "初始化完成\n";
+		//errs() << "开始遍历函数\n";
 		for (llvm::Module::iterator func = M.begin(); func != M.end(); ++func)
 		{
 			Function *F = &*func;
-			errs() << "进入 " << F->getName() << "\n";
+			//errs() << "进入 " << F->getName() << "\n";
 
 			if (F->getName() == "__instrument1" 
 				|| F->getName() == "__instrument2" 
@@ -83,13 +85,13 @@ struct mystuff2 : public ModulePass
 				|| F->getName() == "__my_malloc"
 				) //函数排除表
 			{
-				errs() << "引入的函数，取消插入\n";
+				//errs() << "引入的函数，取消插入\n";
 				continue;
 			}
 
 			if (F->begin() == F->end())
 			{
-				errs() << "找不到指令的外部函数，取消插入\n";
+				//errs() << "找不到指令的外部函数，取消插入\n";
 				continue;
 			}
 		
@@ -99,36 +101,49 @@ struct mystuff2 : public ModulePass
 			{
 				if(F->arg_begin()!=F->arg_end())
 				{
-				errs() << "插入函数参数\n";
+				//errs() << "插入函数参数\n";
 				insert_main_args1(M, F);
 				insert_main_args2(M, F);
-				errs() << "函数参数插入完成\n";
+				//errs() << "函数参数插入完成\n";
 				}
-				errs() << "开始插入全局变量\n";
+				//errs() << "开始插入全局变量\n";
 				insert_globalvar(M);
-				errs() << "全局变量插入完成\n";
+				//errs() << "全局变量插入完成\n";
 			}
 
-			errs() << "插入函数\n";
-			insert_func(M, F);
-			errs() << "函数插入完成\n";
-			errs() << "开始遍历基本块\n";
+			//errs() << "开始遍历基本块\n";
 
 			for (llvm::Function::iterator bb = F->begin(); bb != F->end(); ++bb)
 			{
 				BasicBlock *BB = &*bb;
-				errs() << "开始遍历指令\n";
+				insert_basicblock(M, BB);
+				//errs() << "开始遍历指令\n";
 
 				for (BasicBlock::InstListType::iterator inst = BB->begin(); inst != BB->end(); ++inst)
 				{
 					Instruction *Inst = &*inst;
 
-					if (Inst->getOpcode() != Instruction::Call && Inst->getOpcode() != Instruction::Ret && Inst->getOpcode() != Instruction::PtrToInt && Inst->getOpcode() != Instruction::IntToPtr && Inst->getOpcode() != Instruction::BitCast)
+					if (Inst->getOpcode() == Instruction::Ret)
 					{
-						errs() << "插入中间变量\n";
+						//errs() << "插入中间变量\n";
+						insert_ret_and_store_inst(M, BB, Inst, inst);
+						//errs() << "插入中间变量成功\n";
+					}
+					else if(Inst->getOpcode() == Instruction::Store)
+					{
+						//errs() << "插入中间变量\n";
+						insert_ret_and_store_inst(M, BB, Inst, inst);
+						//errs() << "插入中间变量成功\n";
+					}
+					else if (Inst->getOpcode() != Instruction::Call 
+					&& Inst->getOpcode() != Instruction::PtrToInt 
+					&& Inst->getOpcode() != Instruction::IntToPtr 
+					&& Inst->getOpcode() != Instruction::BitCast)//指令排除表
+					{
+						//errs() << "插入中间变量\n";
 						insert_localvar(M, BB, Inst, ++inst);
 						--inst;
-						errs() << "插入中间变量成功\n";
+						//errs() << "插入中间变量成功\n";
 					}
 				}
 
@@ -138,7 +153,7 @@ struct mystuff2 : public ModulePass
 
 					if (Inst->getOpcode() == Instruction::Call)
 					{
-						errs() << "Call指令\n";
+						//errs() << "Call指令\n";
 						CallInst *callinst = (CallInst *)Inst;
 						Function *callfunc = callinst->getCalledFunction();
 						if (callfunc == NULL)
@@ -158,13 +173,13 @@ struct mystuff2 : public ModulePass
 							|| callfunc->getName() == "__my_malloc"
 							|| callfunc->getName() == "llvm.dbg.declare") //函数排除表
 						{
-							errs() << "引入的函数调用，取消插入返回值\n";
+							//errs() << "引入的函数调用，取消插入返回值\n";
 							continue;
 						}
-						errs() << "插入返回值\n";
+						//errs() << "插入返回值\n";
 						insert_ret(M, BB, callinst, ++inst);
 						--inst;
-						errs() << "插入返回值成功\n";
+						//errs() << "插入返回值成功\n";
 					}
 				}
 			}
@@ -194,10 +209,11 @@ void insert_globalvar(Module &M)
 		 || GV->getName() == "argc_avoid_crash" 
 		 || GV->getName() == "argv_avoid_crash"
 		 || GV->getName() == "memory_avoid_crash"
-		 || GV->getName() == "__PRETTY_FUNCTION__.__my_malloc") //全局变量排除表
+		 || GV->getName() == "__PRETTY_FUNCTION__.__my_malloc"
+		 || GV->getName() == "errno") //全局变量排除表
 			continue;
 
-		errs() << "正在插入全局变量 " << GV->getName() << "\n";
+		//errs() << "正在插入全局变量 " << GV->getName() << "\n";
 		Instruction *ptrtointInst = PtrToIntInst::Create(Instruction::PtrToInt, (Value *)GV, Builder.getInt64Ty());
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(GV)), (Value *)ptrtointInst}, "");
 		BB->getInstList().insert(BI, ptrtointInst);
@@ -205,6 +221,7 @@ void insert_globalvar(Module &M)
 	}
 }
 
+/*
 void insert_func(Module &M, Function *F)
 {
 	Function *func_instrument = M.getFunction("__instrument1");
@@ -212,6 +229,16 @@ void insert_func(Module &M, Function *F)
 	BasicBlock::iterator BI = BB->begin();
 	IRBuilder<> Builder((BasicBlock *)&*BB);
 	Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(F)), Builder.getInt64(0)}, "");
+	BB->getInstList().insert(BI, callInst);
+}
+*/
+
+void insert_basicblock(Module &M, BasicBlock *BB)
+{
+	Function *func_instrument = M.getFunction("__instrument1");
+	BasicBlock::iterator BI = BB->begin();
+	IRBuilder<> Builder((BasicBlock *)&*BB);
+	Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(BB)), Builder.getInt64(0)}, "");
 	BB->getInstList().insert(BI, callInst);
 }
 
@@ -284,6 +311,34 @@ void insert_localvar(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator B
 	else if (v->getType()->isPointerTy())
 	{
 		Instruction *ptrtointInst = PtrToIntInst::Create(Instruction::PtrToInt, v, Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ptrtointInst}, "");
+		BB->getInstList().insert(BI, ptrtointInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+}
+
+void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI)
+{
+	Function *func_instrument = M.getFunction("__instrument1");
+	IRBuilder<> Builder((BasicBlock *)&*BB);
+	if (v->getOperand(0)->getType()->isIntegerTy())
+	{
+		if (v->getType() == Builder.getInt64Ty())
+		{
+			Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), v->getOperand(0)}, "");
+			BB->getInstList().insert(BI, callInst);
+		}
+		else
+		{
+			Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, v->getOperand(0), Builder.getInt64Ty());
+			Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), zextInst}, "");
+			BB->getInstList().insert(BI, zextInst);
+			BB->getInstList().insert(BI, callInst);
+		}
+	}
+	else if (v->getOperand(0)->getType()->isPointerTy())
+	{
+		Instruction *ptrtointInst = PtrToIntInst::Create(Instruction::PtrToInt, v->getOperand(0), Builder.getInt64Ty());
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ptrtointInst}, "");
 		BB->getInstList().insert(BI, ptrtointInst);
 		BB->getInstList().insert(BI, callInst);
