@@ -547,7 +547,7 @@ void print_CallInst(Instruction* Inst,raw_fd_ostream &out)
 		}
 		out<<") ";
 	}
-	out<<")";
+	
 
 
 }
