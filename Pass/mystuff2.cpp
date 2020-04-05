@@ -42,8 +42,9 @@ void insert_main_args1(Module &M, Function *F);
 void insert_main_args2(Module &M, Function *F);
 void insert_localvar(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator BI);
 void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI);
+void insert_before_call(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI);
 
-static Value **group; //ID part
+static Value **group; // ID part
 static int cur = 0;
 static int Num = 0;
 static int getID(Value *val, bool report = true);
@@ -176,6 +177,10 @@ struct mystuff2 : public ModulePass
 							//errs() << "引入的函数调用，取消插入返回值\n";
 							continue;
 						}
+						//errs() << "在Call前插入\n";
+						insert_before_call(M, BB, callinst, inst);
+						//errs() << "Call前成功\n";
+
 						//errs() << "插入返回值\n";
 						insert_ret(M, BB, callinst, ++inst);
 						--inst;
@@ -220,18 +225,6 @@ void insert_globalvar(Module &M)
 		BB->getInstList().insert(BI, callInst);
 	}
 }
-
-/*
-void insert_func(Module &M, Function *F)
-{
-	Function *func_instrument = M.getFunction("__instrument1");
-	Function::iterator BB = F->begin();
-	BasicBlock::iterator BI = BB->begin();
-	IRBuilder<> Builder((BasicBlock *)&*BB);
-	Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(F)), Builder.getInt64(0)}, "");
-	BB->getInstList().insert(BI, callInst);
-}
-*/
 
 void insert_basicblock(Module &M, BasicBlock *BB)
 {
@@ -343,6 +336,14 @@ void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicB
 		BB->getInstList().insert(BI, ptrtointInst);
 		BB->getInstList().insert(BI, callInst);
 	}
+}
+
+void insert_before_call(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI)
+{
+	Function *func_instrument = M.getFunction("__instrument1");
+	IRBuilder<> Builder((BasicBlock *)&*BB);
+	Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), Builder.getInt64(0)}, "");
+	BB->getInstList().insert(BI, callInst);
 }
 
 //ID part
