@@ -171,7 +171,7 @@ void PrintValueType(Type* type,raw_fd_ostream &out)
 		out<<" "<<type->getStructNumElements();
 	}else   
 	{
-		if(is_array&&type->getIntegerBitWidth()==8)
+		if(is_array&&(type->getIntegerBitWidth()==8||type->getIntegerBitWidth()==32))
 			is_uint8 =true;
 		out <<" "<<type->getIntegerBitWidth();
 	}
@@ -215,6 +215,24 @@ void print_global_variable(Module &M,raw_fd_ostream & out)
 			}
 			out<<")";
 		}
+		else
+		{
+			Constant * constant=GV->getInitializer();
+			if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>((Value*)constant))
+			if(CI->getBitWidth()<=32)
+			{
+				
+				int number=CI->getSExtValue();
+				out<<" "<<number<<" ";
+			}
+			else
+			{
+				long long int number=CI->getSExtValue();
+				out<<" "<<number<<" ";
+			}
+			
+		}
+		
 		out<<")";
 		out<<"\n";
 	}
@@ -783,7 +801,9 @@ bool check_pollute(Value* val)
 		|| val->getName() == "errno"
 		|| val->getName() == "pow"
 		|| val->getName() == "DESCRIPTION"
-		|| val->getName() == "END_DESCRIPTION"  
+		|| val->getName() == "END_DESCRIPTION"
+		
+  
 		)
 		return true;
 	else
@@ -792,4 +812,3 @@ bool check_pollute(Value* val)
 
 char mystuff1::ID = 0;
 static RegisterPass<mystuff1> X("mystuff1", "Hello World Pass");
-
