@@ -11,7 +11,7 @@ static void* memory_avoid_crash = NULL;
  int argc_avoid_crash;
  char** argv_avoid_crash;
 
-void __instrument1(long id, unsigned long value) {
+void __instrument1(long long id, unsigned long value) {
   
 char file_name[9];file_name[0]='e';file_name[1]='x';file_name[2]='e';
 file_name[3]='c';file_name[4]='.';file_name[5]='o';file_name[6]='u';file_name[7]='t';file_name[8]='\0';
@@ -23,7 +23,7 @@ open[0]='w';open[1]='\0';
 
 
   if (!fpexec_avoid_crash) fpexec_avoid_crash = fopen(file_name, open);
-  fprintf(fpexec_avoid_crash, format, id, value);
+  fprintf(fpexec_avoid_crash, "(I %ld %ld 1)\n", id,value);
   fflush(fpexec_avoid_crash);
 }
 
