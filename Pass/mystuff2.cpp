@@ -331,9 +331,15 @@ void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicB
 	}
 	else if (v->getOperand(0)->getType()->isPointerTy())
 	{
+		//这里可能有问题
 		Instruction *ptrtointInst = PtrToIntInst::Create(Instruction::PtrToInt, v->getOperand(0), Builder.getInt64Ty());
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ptrtointInst}, "");
 		BB->getInstList().insert(BI, ptrtointInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+	else if (v->getOperand(0)->getType()->isVoidTy())
+	{
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), Builder.getInt64(0)}, "");
 		BB->getInstList().insert(BI, callInst);
 	}
 }
