@@ -316,7 +316,7 @@ void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicB
 	IRBuilder<> Builder((BasicBlock *)&*BB);
 	if (v->getOperand(0)->getType()->isIntegerTy())
 	{
-		if (v->getType() == Builder.getInt64Ty())
+		if (v->getOperand(0)->getType() == Builder.getInt64Ty())
 		{
 			Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), v->getOperand(0)}, "");
 			BB->getInstList().insert(BI, callInst);
