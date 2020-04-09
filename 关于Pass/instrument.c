@@ -11,9 +11,9 @@ static void* memory_avoid_crash = NULL;
  int argc_avoid_crash;
  char** argv_avoid_crash;
 
-void __instrument1(long id, unsigned long value) {
+void __instrument1(long long id, unsigned long value) {
   
-char file_name[8];file_name[0]='e';file_name[1]='x';file_name[2]='e';
+char file_name[9];file_name[0]='e';file_name[1]='x';file_name[2]='e';
 file_name[3]='c';file_name[4]='.';file_name[5]='o';file_name[6]='u';file_name[7]='t';file_name[8]='\0';
   char format[15];format[0]='(';format[1]='I';format[2]=' ';format[3]='%';format[4]='l';format[5]='d';format[6]=' ';format[7]='%';format[8]='l';format[9]='d';
 format[10]=' ';format[11]='1';format[12]=')';format[13]='\n';format[14]='\0';
@@ -23,12 +23,12 @@ open[0]='w';open[1]='\0';
 
 
   if (!fpexec_avoid_crash) fpexec_avoid_crash = fopen(file_name, open);
-  fprintf(fpexec_avoid_crash, format, id, value);
+  fprintf(fpexec_avoid_crash, "(I %ld %ld 1)\n", id,value);
   fflush(fpexec_avoid_crash);
 }
 
 void __instrument2(long id, unsigned long value) {
-  char file_name[8];file_name[0]='e';file_name[1]='x';file_name[2]='e';
+  char file_name[9];file_name[0]='e';file_name[1]='x';file_name[2]='e';
 file_name[3]='c';file_name[4]='.';file_name[5]='o';file_name[6]='u';file_name[7]='t';file_name[8]='\0';
   char format[15];format[0]='(';format[1]='I';format[2]=' ';format[3]='%';format[4]='l';format[5]='d';format[6]=' ';format[7]='%';format[8]='l';format[9]='d';
 format[10]=' ';format[11]='2';format[12]=')';format[13]='\n';format[14]='\0';
@@ -43,7 +43,7 @@ open[0]='w';open[1]='\0';
 
 void __main_args(void* ptr) {
 
-  char file_name[8];file_name[0]='a';file_name[1]='r';file_name[2]='g';
+  char file_name[9];file_name[0]='a';file_name[1]='r';file_name[2]='g';
 file_name[3]='s';file_name[4]='.';file_name[5]='o';file_name[6]='u';file_name[7]='t';file_name[8]='\0';
   char format[8];format[0]='%';format[1]='l';format[2]='x';format[3]=' ';format[4]='%';format[5]='d';format[6]='\n';format[7]='\0';
   char open[2];
@@ -217,4 +217,3 @@ int pow(int x, int n) {
 
 void DESCRIPTION(const char* str) { }
 void END_DESCRIPTION() { }
-
