@@ -428,6 +428,9 @@ void print_instruction(Instruction *Inst,raw_fd_ostream &out)
 	if(name=="StoreInst")
 		print_StoreInst(Inst,out);
 	else
+	if(Inst->getNumOperands()<=0)
+		out<<" "<<"nil"<<" ";
+	else
 	for(int i=0;i<Inst->getNumOperands();i++)
 	{
 		
@@ -812,3 +815,4 @@ bool check_pollute(Value* val)
 
 char mystuff1::ID = 0;
 static RegisterPass<mystuff1> X("mystuff1", "Hello World Pass");
+

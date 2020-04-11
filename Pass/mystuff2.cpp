@@ -314,7 +314,13 @@ void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicB
 {
 	Function *func_instrument = M.getFunction("__instrument1");
 	IRBuilder<> Builder((BasicBlock *)&*BB);
-	if (v->getOperand(0)->getType()->isIntegerTy())
+
+	if (v->getOpcode() == Instruction::Ret && ((ReturnInst*)v)->getReturnValue() == NULL)
+	{
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), Builder.getInt64(0)}, "");
+		BB->getInstList().insert(BI, callInst);
+	}
+	else if (v->getOperand(0)->getType()->isIntegerTy())
 	{
 		if (v->getOperand(0)->getType() == Builder.getInt64Ty())
 		{
@@ -337,11 +343,7 @@ void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicB
 		BB->getInstList().insert(BI, ptrtointInst);
 		BB->getInstList().insert(BI, callInst);
 	}
-	else if (v->getOperand(0)->getType()->isVoidTy())
-	{
-		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), Builder.getInt64(0)}, "");
-		BB->getInstList().insert(BI, callInst);
-	}
+	
 }
 
 void insert_before_call(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI)
