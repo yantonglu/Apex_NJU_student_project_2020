@@ -1,0 +1,161 @@
+The ALIGN result of A is
+0
+n
+0
+0
+result
+result * 10 + x % 10
+x / 9
+result
+result * 10 + x % 10
+x / 9
+result
+result * 10 + x % 10
+x / 9
+result
+The ALIGN result of B is
+0
+n
+0
+0
+1
+0 - x
+0
+x - x / 10 * 10
+result * 10 + lastDigit
+x / 10
+x - x / 10 * 10
+result * 10 + lastDigit
+x / 10
+x - x / 10 * 10
+result * 10 + lastDigit
+x / 10
+0 - result
+criteriaidx [0, 1]
+criteriaA
+101 (OPIns 60 1 :src "19: \tprintf(\"%d\",reverse(n));" :loc 19 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr (ref "instr" 50 1)) :e1 (expr (ref "instr" 49 1)) :e2 (expr "+" (expr "*" (expr "+" (expr "*" (expr "+" (expr "*" (expr 0) (expr 10)) (expr "%" (expr 4294967079) (expr 10))) (expr 10)) (expr "%" (expr "/" (expr 4294967079) (expr 9)) (expr 10))) (expr 10)) (expr "%" (expr "/" (expr "/" (expr 4294967079) (expr 9)) (expr 9)) (expr 10))) :e3 (expr (ref "instr" 49 1)) :e4 (expr (ref "instr" 46 1)) :v 4294966554))
+criteriaB
+99 (OPIns 68 1 :src "34: \tprintf(\"%d\",reverse(n));" :loc 34 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr (ref "instr" 58 1)) :e1 (expr (ref "instr" 57 1)) :e2 (expr "-" (expr 0) (expr "+" (expr "*" (expr "+" (expr "*" (expr "+" (expr "*" (expr 0) (expr 10)) (expr "-" (expr "-" (expr 0) (expr 4294967079)) (expr "*" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr 10)))) (expr 10)) (expr "-" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr "*" (expr "/" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr 10)) (expr 10)))) (expr 10)) (expr "-" (expr "/" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr 10)) (expr "*" (expr "/" (expr "/" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr 10)) (expr 10)) (expr 10))))) :e3 (expr (ref "instr" 57 1)) :e4 (expr (ref "instr" 54 1)) :v 4294966584))
+
+
+criteriaA
+101 (OPIns 60 1 :src "19: \tprintf(\"%d\",reverse(n));" :loc 19 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr (ref "instr" 50 1)) :e1 (expr (ref "instr" 49 1)) :e2 (expr "+" (expr "*" (expr "+" (expr "*" (expr "+" (expr "*" (expr 0) (expr 10)) (expr "%" (expr 4294967079) (expr 10))) (expr 10)) (expr "%" (expr "/" (expr 4294967079) (expr 9)) (expr 10))) (expr 10)) (expr "%" (expr "/" (expr "/" (expr 4294967079) (expr 9)) (expr 9)) (expr 10))) :e3 (expr (ref "instr" 49 1)) :e4 (expr (ref "instr" 46 1)) :v 4294966554))
+criteriaB
+99 (OPIns 68 1 :src "34: \tprintf(\"%d\",reverse(n));" :loc 34 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr (ref "instr" 58 1)) :e1 (expr (ref "instr" 57 1)) :e2 (expr "-" (expr 0) (expr "+" (expr "*" (expr "+" (expr "*" (expr "+" (expr "*" (expr 0) (expr 10)) (expr "-" (expr "-" (expr 0) (expr 4294967079)) (expr "*" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr 10)))) (expr 10)) (expr "-" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr "*" (expr "/" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr 10)) (expr 10)))) (expr 10)) (expr "-" (expr "/" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr 10)) (expr "*" (expr "/" (expr "/" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr 10)) (expr 10)) (expr 10))))) :e3 (expr (ref "instr" 57 1)) :e4 (expr (ref "instr" 54 1)) :v 4294966584))
+
+
+
+===================================================================
+SLICE 1 A
+
+
+SLICE 1 B
+===================================================================
+
+
+
+
+
+filter A
+
+
+filter B
+
+
+
+seqA
+
+
+
+seqB
+REALIGN2
+   ALIGNMENTS
+
+NAME ALIGN
+//NAME ALIGN
+
+
+
+
+alignments
+24 24 (STIns 55 1 :src () :loc 0 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr 0) :e1 (expr 0) :e2 (expr 0) :e3 (expr 0) :e4 (expr 0) :v 0) :addr (Val :e0 (expr (ref "instr" 53 1)) :e1 (expr (ref "instr" 53 1)) :e2 (expr 140732860107836) :e3 (expr (ref "instr" 53 1)) :e4 (expr (ref "instr" 53 1)) :v 140732860107836) :desc ()) (STIns 63 1 :src () :loc 0 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr 0) :e1 (expr 0) :e2 (expr 0) :e3 (expr 0) :e4 (expr 0) :v 0) :addr (Val :e0 (expr (ref "instr" 61 1)) :e1 (expr (ref "instr" 61 1)) :e2 (expr 140731374365116) :e3 (expr (ref "instr" 61 1)) :e4 (expr (ref "instr" 61 1)) :v 140731374365116) :desc ())
+32 32 (STIns 8 1 :src () :loc 0 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr (ref "instr" 59 1)) :e1 (expr (ref "instr" 59 1)) :e2 (expr 4294967079) :e3 (expr (ref "instr" 59 1)) :e4 (expr 4294967079) :v 4294967079) :addr (Val :e0 (expr (ref "instr" 5 1)) :e1 (expr (ref "instr" 5 1)) :e2 (expr 140732860107784) :e3 (expr (ref "instr" 5 1)) :e4 (expr (ref "instr" 5 1)) :v 140732860107784) :desc ()) (STIns 8 1 :src () :loc 0 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr (ref "instr" 67 1)) :e1 (expr (ref "instr" 67 1)) :e2 (expr 4294967079) :e3 (expr (ref "instr" 67 1)) :e4 (expr 4294967079) :v 4294967079) :addr (Val :e0 (expr (ref "instr" 4 1)) :e1 (expr (ref "instr" 4 1)) :e2 (expr 140731374365068) :e3 (expr (ref "instr" 4 1)) :e4 (expr (ref "instr" 4 1)) :v 140731374365068) :desc ())
+33 33 (STIns 11 1 :src "4: \tint result = 0;" :loc 4 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr 0) :e1 (expr 0) :e2 (expr 0) :e3 (expr 0) :e4 (expr 0) :v 0) :addr (Val :e0 (expr (ref "instr" 6 1)) :e1 (expr (ref "instr" 6 1)) :e2 (expr 140732860107780) :e3 (expr (ref "instr" 6 1)) :e4 (expr (ref "instr" 6 1)) :v 140732860107780) :desc ()) (STIns 11 1 :src "5: \tint result = 0;" :loc 5 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr 0) :e1 (expr 0) :e2 (expr 0) :e3 (expr 0) :e4 (expr 0) :v 0) :addr (Val :e0 (expr (ref "instr" 5 1)) :e1 (expr (ref "instr" 5 1)) :e2 (expr 140731374365064) :e3 (expr (ref "instr" 5 1)) :e4 (expr (ref "instr" 5 1)) :v 140731374365064) :desc ())
+34 34 (STIns 13 1 :src "5: \tint old_result = 0;" :loc 5 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr 0) :e1 (expr 0) :e2 (expr 0) :e3 (expr 0) :e4 (expr 0) :v 0) :addr (Val :e0 (expr (ref "instr" 7 1)) :e1 (expr (ref "instr" 7 1)) :e2 (expr 140732860107776) :e3 (expr (ref "instr" 7 1)) :e4 (expr (ref "instr" 7 1)) :v 140732860107776) :desc ()) (STIns 13 1 :src "7: \tint flag = 0;" :loc 7 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr 0) :e1 (expr 0) :e2 (expr 0) :e3 (expr 0) :e4 (expr 0) :v 0) :addr (Val :e0 (expr (ref "instr" 6 1)) :e1 (expr (ref "instr" 6 1)) :e2 (expr 140731374365060) :e3 (expr (ref "instr" 6 1)) :e4 (expr (ref "instr" 6 1)) :v 140731374365060) :desc ())
+38 41 (STIns 21 1 :src "7: \t\told_result = result;" :loc 7 :cdep (ref "instr" 0 0) :pdf (list 18) :expr (Val :e0 (expr (ref "instr" 20 1)) :e1 (expr (ref "instr" 20 1)) :e2 (expr 0) :e3 (expr (ref "instr" 20 1)) :e4 (expr (ref "instr" 11 1)) :v 0) :addr (Val :e0 (expr (ref "instr" 7 1)) :e1 (expr (ref "instr" 7 1)) :e2 (expr 140732860107776) :e3 (expr (ref "instr" 7 1)) :e4 (expr (ref "instr" 7 1)) :v 140732860107776) :desc ()) (STIns 25 1 :src "14: \tint lastDigit = 0;" :loc 14 :cdep (ref "instr" 0 0) :pdf (list) :expr (Val :e0 (expr 0) :e1 (expr 0) :e2 (expr 0) :e3 (expr 0) :e4 (expr 0) :v 0) :addr (Val :e0 (expr (ref "instr" 7 1)) :e1 (expr (ref "instr" 7 1)) :e2 (expr 140731374365056) :e3 (expr (ref "instr" 7 1)) :e4 (expr (ref "instr" 7 1)) :v 140731374365056) :desc ())
+94 89 (STIns 42 3 :src "11: \t\tx = x / 9;" :loc 11 :cdep (ref "instr" 0 0) :pdf (list 35) :expr (Val :e0 (expr (ref "instr" 41 3)) :e1 (expr "/" (expr (ref "instr" 40 3)) (expr 9)) :e2 (expr "/" (expr "/" (expr "/" (expr 4294967079) (expr 9)) (expr 9)) (expr 9)) :e3 (expr "/" (expr (ref "instr" 40 3)) (expr 9)) :e4 (expr "/" (expr (ref "instr" 42 2)) (expr 9)) :v 0) :addr (Val :e0 (expr (ref "instr" 5 1)) :e1 (expr (ref "instr" 5 1)) :e2 (expr 140732860107784) :e3 (expr (ref "instr" 5 1)) :e4 (expr (ref "instr" 5 1)) :v 140732860107784) :desc ()) (STIns 45 3 :src "19: \t\tx /= 10;" :loc 19 :cdep (ref "instr" 0 0) :pdf (list 30) :expr (Val :e0 (expr (ref "instr" 44 3)) :e1 (expr "/" (expr (ref "instr" 43 3)) (expr 10)) :e2 (expr "/" (expr "/" (expr "/" (expr "-" (expr 0) (expr 4294967079)) (expr 10)) (expr 10)) (expr 10)) :e3 (expr "/" (expr (ref "instr" 43 3)) (expr 10)) :e4 (expr "/" (expr (ref "instr" 45 2)) (expr 10)) :v 0) :addr (Val :e0 (expr (ref "instr" 4 1)) :e1 (expr (ref "instr" 4 1)) :e2 (expr 140731374365068) :e3 (expr (ref "instr" 4 1)) :e4 (expr (ref "instr" 4 1)) :v 140731374365068) :desc ())
+
+
+
+
+
+
+
+
+===================================================================
+SLICE2 A
+
+SLICE2 B
+===================================================================
+
+
+
+
+
+
+
+
+xxx-A
+//xxx
+
+
+___SSB
+
+
+xxx-B
+//xxx
+
+
+___SSA
+
+
+SLICE B####
+
+
+
+
+
+
+SLICE B***
+///***
+
+
+
+
+
+
+
+
+
+
+--SLICE A
+
+
+
+++SLICE B
+
+
+
+
+
+
+
+
+
+
+
+--SLICE A
+
+
+
+++SLICE B
