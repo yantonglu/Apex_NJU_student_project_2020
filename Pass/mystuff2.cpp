@@ -44,14 +44,13 @@ void insert_localvar(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator B
 void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI);
 void insert_before_call(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI);
 
-static Value **group; // ID part
-static int cur = 0;
-static int Num = 0;
-static int getID(Value *val, bool report = true);
-static void check_repeat();
-static void init(Module &M);
-static bool check_pollute(Value *val);
-static int is_arg(Function *F, Value *val);
+
+//ID part
+extern int getID(Value* val,bool report=true);
+extern void init(Module &M);
+extern bool check_pollute(Value* val);
+extern int is_arg(Function* F,Value* val);
+
 
 namespace
 {
@@ -230,6 +229,8 @@ void insert_basicblock(Module &M, BasicBlock *BB)
 {
 	Function *func_instrument = M.getFunction("__instrument1");
 	BasicBlock::iterator BI = BB->begin();
+	if(BB->begin()->getOpcode() == Instruction::PHI)
+		BI++;
 	IRBuilder<> Builder((BasicBlock *)&*BB);
 	Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(BB)), Builder.getInt64(0)}, "");
 	BB->getInstList().insert(BI, callInst);
@@ -354,150 +355,6 @@ void insert_before_call(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::i
 	BB->getInstList().insert(BI, callInst);
 }
 
-//ID part
-
-void init(Module &M)
-{
-	int num = 0;
-	for (Module::global_iterator GVI = M.global_begin(); GVI != M.global_end(); ++GVI)
-		num++;
-	for (llvm::Module::iterator func = M.begin(); func != M.end(); ++func)
-	{
-
-		Function *F = &*func;
-		num++;
-
-		for (llvm::Function::iterator bb = F->begin(); bb != F->end(); ++bb)
-		{
-			BasicBlock *BB = &*bb;
-			num++;
-			for (BasicBlock::InstListType::iterator inst = BB->begin(); inst != BB->end(); ++inst)
-			{
-				Instruction *Inst = &*inst;
-
-				num++;
-			}
-		}
-	}
-	Num = num + 200;
-	group = new Value *[Num];
-	Value *tmp;
-	for (Module::global_iterator GVI = M.global_begin(); GVI != M.global_end(); ++GVI)
-	{
-		GlobalVariable *GV = &*GVI;
-
-		tmp = (Value *)GV;
-		if (check_pollute(tmp))
-			continue;
-		group[cur] = tmp;
-		cur++;
-	}
-
-	for (llvm::Module::iterator func = M.begin(); func != M.end(); ++func)
-	{
-
-		Function *F = &*func;
-		tmp = (Value *)F;
-		if (check_pollute(tmp))
-			continue;
-		group[cur] = tmp;
-		cur++;
-
-		for (llvm::Function::iterator bb = F->begin(); bb != F->end(); ++bb)
-		{
-			BasicBlock *BB = &*bb;
-			tmp = (Value *)BB;
-			group[cur] = tmp;
-			cur++;
-			for (BasicBlock::InstListType::iterator inst = BB->begin(); inst != BB->end(); ++inst)
-			{
-				Instruction *Inst = &*inst;
-				tmp = (Value *)Inst;
-				group[cur] = tmp;
-				cur++;
-				num++;
-			}
-		}
-	}
-}
-int getID(Value *val, bool report)
-{
-	for (int i = 0; i < Num; i++)
-	{
-		if (val == group[i])
-			return i;
-	}
-	if (report)
-		errs() << "id error: "<<*val<<"\n";
-	return -1;
-}
-
-void check_repeat()
-{
-
-	for (int i = 0; i < cur; i++)
-	{
-		for (int j = i + 1; j < cur; j++)
-		{
-			if (group[i] == group[j])
-			{
-				errs() << "ID repeat error *******\n";
-				return;
-			}
-		}
-	}
-}
-
-int is_arg(Function *F, Value *val)
-{
-	int order = 0;
-	for (llvm::Function::arg_iterator it = F->arg_begin(); it != F->arg_end(); it++)
-	{
-		Argument *arg = it;
-		if ((Value *)arg == val)
-			return order;
-		order++;
-	}
-	return -1;
-}
-bool check_pollute(Value *val)
-{
-	if (val->getName() == "__instrument1"
-		|| val->getName() == "__instrument2"
-		|| val->getName() == "__main_args"
-		|| val->getName() == "args_avoid_crash"
-		|| val->getName() == "argc_avoid_crash"
-		|| val->getName() == "argv_avoid_crash"
-		|| val->getName() == "fpexec_avoid_crash"
-		|| val->getName() == "fpargs_avoid_crash"
-		|| val->getName() == "struct._IO_FILE"
-		|| val->getName() == "struct._IO_marker"
-		|| val->getName() == "fopen"
-		|| val->getName() == "fprintf"
-		|| val->getName() == "fflush"
-		|| val->getName() == "llvm.dbg.declare"
-		|| val->getName() == "llvm.dbg.value"
-		|| val->getName() == "fpvars_avoid_crash"
-		|| val->getName() == "fpinput_avoid_crash"
-		|| val->getName() == "memory_avoid_crash"
-		|| val->getName() == "INPUT_CHAR_ARRAY"
-		|| val->getName() == "INPUT_VARIABLE"
-		|| val->getName() == "INPUT_ARRAY"
-		|| val->getName() == "INPUT_MATRIX"
-		|| val->getName() == "__my_malloc"
-		|| val->getName() == "INTERNAL_ARRAY"
-		|| val->getName() == "INTERNAL_VARIABLE"
-		|| val->getName() == "fgetc"
-		|| val->getName() == "__isoc99_fscanf"
-		|| val->getName() == "errno"
-		|| val->getName() == "pow"
-		|| val->getName() == "DESCRIPTION"
-		|| val->getName() == "END_DESCRIPTION"  
-		)
-		return true;
-	else
-		return false;
-}
 
 char mystuff2::ID = 0;
 static RegisterPass<mystuff2> X("mystuff2", "Hello World Pass");
