@@ -50,20 +50,29 @@ void print_CmpInst(Instruction*Inst ,raw_fd_ostream &out);
 void print_CastInst(Instruction*Inst ,raw_fd_ostream &out);
 void print_BinopInst(Instruction*Inst ,raw_fd_ostream &out);
 void print_StoreInst(Instruction*Inst ,raw_fd_ostream &out);
-
+void print_PhiInst(Instruction*Inst ,raw_fd_ostream &out);
 std::string Instname(Instruction * inst);
 void PrintValueType(Type* type,raw_fd_ostream &out);
+void print_llvmfunc(raw_fd_ostream &out);
 
 
 
-static Value** group;  //ID part
-static int cur=0;
-static int Num=0;
-static int getID(Value* val,bool report=true);
-static void check_repeat();
-static void init(Module &M);
-static bool check_pollute(Value* val);
-static int is_arg(Function* F,Value* val);
+ Value** group;  //ID part
+ Value** llvm_group;
+ int start=4;
+ int cur=4;
+ int llvm_cur=0;
+ int Num=0;
+
+int getID(Value* val,bool report=true);
+
+ void check_repeat();
+ int check_llvmgroup(Value *val);
+ void init(Module &M);
+
+bool check_pollute(Value* val);
+int is_arg(Function* F,Value* val);
+ bool init_llvmgroup(Function* F);
 
 
 namespace {
@@ -88,7 +97,7 @@ namespace {
 	for(llvm::Module::iterator func=M.begin();func!=M.end();++func)
 	{
 		Function *F=&* func;
-		if(check_pollute((Value*)F))
+		if(check_pollute((Value*)F)||check_llvmgroup((Value*)F)!=-1)
 			continue;
 		print_function(F,out);
 		
@@ -206,12 +215,18 @@ void print_global_variable(Module &M,raw_fd_ostream & out)
 			is_uint8=false;is_array=false;
 			out<<" ";
 			out<<"(list ";
+			Constant* con=GV->getInitializer();
+			if(con->isZeroValue())
+				;
+			else
+			{
 			 ConstantDataSequential *CDS =NULL;
 			 CDS=cast<ConstantDataSequential>(GV->getInitializer());
 			
 			for (unsigned i = 0; i < CDS->getNumElements(); i++) 
 			{
 				out<<CDS->getElementAsInteger(i)<<" ";
+			}
 			}
 			out<<")";
 		}
@@ -236,7 +251,14 @@ void print_global_variable(Module &M,raw_fd_ostream & out)
 		out<<")";
 		out<<"\n";
 	}
+	print_llvmfunc(out);
 
+}
+void print_llvmfunc(raw_fd_ostream &out)
+{
+	out<<"(Function 1 () \"llvm_memset\" (TypeVoid))\n";
+	out<<"(Function 2 () \"llvm_memcpy\" (TypeVoid))\n";
+	out<<"(Function 3 () \"llvm_memmove\" (TypeVoid))\n";
 }
 
 void print_function(Function *F,raw_fd_ostream & out)
@@ -428,6 +450,9 @@ void print_instruction(Instruction *Inst,raw_fd_ostream &out)
 	if(name=="StoreInst")
 		print_StoreInst(Inst,out);
 	else
+	if(name=="PhiInst")
+		print_PhiInst(Inst,out);
+	else
 	if(Inst->getNumOperands()<=0)
 		out<<" "<<"nil"<<" ";
 	else
@@ -462,7 +487,59 @@ void print_instruction(Instruction *Inst,raw_fd_ostream &out)
 
 }
 
+void print_PhiInst(Instruction*Inst ,raw_fd_ostream &out)
+{
+	PHINode* phi=(PHINode *)Inst;
+	int num=phi->getNumIncomingValues();
+	for(int i=0;i<num;i++)
+	{
+		Value* val=phi->getIncomingValue(i);
+		BasicBlock * BB=phi->getIncomingBlock(i);
+		out<<"(";
+		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(val))
+		{
+			if(CI->getBitWidth()<=32)
+			{
+				int number=CI->getSExtValue();
+				out<<" "<<number<<" ";
+			}
+			else
+			{
+				long long int number=CI->getSExtValue();
+				out<<" "<<number<<" ";
+			}
+			
+		}
+		else
+		{
+			out<<"(iref "<< getID((Value*)val)<<")";		
+		}
+		out<<" ";
+		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>((Value*)BB))
+		{
+			if(CI->getBitWidth()<=32)
+			{
+				int number=CI->getSExtValue();
+				out<<" "<<number<<" ";
+			}
+			else
+			{
+				long long int number=CI->getSExtValue();
+				out<<" "<<number<<" ";
+			}
+			
+		}
+		else
+		{
+			out<<"(iref "<< getID((Value*)BB)<<")";		
+		}
+		out<<")";
+		
+	}
+	out<<" "<<num;
 
+
+}
 void print_StoreInst(Instruction*Inst ,raw_fd_ostream &out)
 {
 	StoreInst* inst=(StoreInst*) Inst;
@@ -688,6 +765,7 @@ void init(Module &M)
 	}
 	Num=num+200;
 	group=new Value*[Num];
+	llvm_group=new Value*[10];
 	Value* tmp;
 	for (Module::global_iterator GVI = M.global_begin() ;GVI != M.global_end(); ++GVI )
 	{
@@ -707,6 +785,8 @@ void init(Module &M)
 		Function *F=&* func;
 		tmp=(Value*)F;
 		if(check_pollute(tmp))
+			continue;
+		if(init_llvmgroup(F))
 			continue;	
 		group[cur]=tmp;
 		cur++;
@@ -729,13 +809,48 @@ void init(Module &M)
 		}
 	}
 }
+bool init_llvmgroup(Function* F)
+{
+	
+	if(F->getName() == "llvm.memcpy.p0i8.p0i8.i64"
+	|| F->getName() == "llvm.memcpy.p0i8.p0i8.i32"
+	|| F->getName() == "llvm.memset.p0i8.i64")
+	{
+		llvm_group[llvm_cur]=(Value*)F;
+		llvm_cur++;
+		return true;	
+	}
+	
+	return false;
+}
+int check_llvmgroup(Value *val)
+{
+	for(int i=0;i<llvm_cur;i++)
+	{
+		if(val==llvm_group[i])
+		{
+			if(val->getName() == "llvm.memcpy.p0i8.p0i8.i64"
+	|| val->getName() == "llvm.memcpy.p0i8.p0i8.i32")
+				return 2;
+			else
+			if(val->getName() == "llvm.memset.p0i8.i64")
+				return 1;
+			
+		}
+			     
+	}
+	return -1;
+}
 int getID(Value* val,bool report)
 {
-	for(int i=0;i<Num;i++)
+	for(int i=start;i<Num;i++)
 	{
 		if(val==group[i])
 			return i;
 	}
+	
+	if(check_llvmgroup(val)!=-1)
+		return check_llvmgroup(val);
 	if(report)
 		errs()<<"id error: "<<*val<<"\n";
 	return -1;
@@ -744,7 +859,7 @@ int getID(Value* val,bool report)
 void check_repeat()
 {
 	
-	for(int i=0;i<cur;i++)
+	for(int i=start;i<cur;i++)
 	{
 		for(int j=i+1;j<cur;j++)
 		{
@@ -806,6 +921,7 @@ bool check_pollute(Value* val)
 		|| val->getName() == "DESCRIPTION"
 		|| val->getName() == "END_DESCRIPTION"
 		
+		
   
 		)
 		return true;
@@ -815,4 +931,3 @@ bool check_pollute(Value* val)
 
 char mystuff1::ID = 0;
 static RegisterPass<mystuff1> X("mystuff1", "Hello World Pass");
-
