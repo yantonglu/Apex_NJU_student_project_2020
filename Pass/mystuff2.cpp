@@ -136,9 +136,7 @@ struct mystuff2 : public ModulePass
 						//errs() << "插入中间变量成功\n";
 					}
 					else if (Inst->getOpcode() != Instruction::Call 
-					&& Inst->getOpcode() != Instruction::PtrToInt 
-					&& Inst->getOpcode() != Instruction::IntToPtr 
-					&& Inst->getOpcode() != Instruction::BitCast)//指令排除表
+					&& getID(Inst, false) != -1)//指令排除表
 					{
 						//errs() << "插入中间变量\n";
 						insert_localvar(M, BB, Inst, ++inst);
