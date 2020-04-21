@@ -1,0 +1,18 @@
+int factorial(int x)
+{
+    if (x == 1) return 1;
+    int ret = 0;
+    ret = x * factorial(x-1);
+??? ret = 0;//bug    // (WRONG)  ret=0
++++   = ret    // (CORRECT)  
+??? return ret;    // (WRONG)  =0, ret=0
+
+}
+int main()
+{
+    int n = 10;
+??? int ret = factorial(n);    // (WRONG)  ret=0, =0
+
+    printf("%d",ret);
+    return 0;
+}

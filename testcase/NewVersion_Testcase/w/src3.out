@@ -1,0 +1,14 @@
+int main()
+{
+    int n = 10;
+    int ret = 0;
+    int i = 0;
+    while(i < n)
+    {
+???     ret += i;    // (WRONG)  ret=6, ret=3, i=3
++++  i = i + 1    // (CORRECT)  
+        i++;
+    }
+    printf("%d",ret);
+    return 0;
+}

@@ -1,0 +1,18 @@
+int main()
+{
+    int x = 29;
+??? int i = 1;    // (WRONG)  i=1
++++  i = 2    // (CORRECT)  
+    while (i < x)
+    {
+        if(x%i==0)   break;
+        i++;
+    }
+??? if(i==x)    // (WRONG)  i=1, x=29
+
+        printf("%d是素数\n",x);
+    else
+???     printf("%d不是素数\n",x);    // (WRONG)  
+
+    return 0;
+}

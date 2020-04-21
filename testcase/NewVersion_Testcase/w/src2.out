@@ -1,0 +1,20 @@
+int nums(int first_nums)
+{
+    if (first_nums < 2) return 0;
+    int n = first_nums/2;
+    int n_ = first_nums - n*2;
+    int ret = 0;
+??? ret = n + nums(n);//bug    // (WRONG)  ret=3, n=1, =1
++++   = ret    // (CORRECT)  
+??? return ret;    // (WRONG)  =3, ret=3
++++  ret = n +     // (CORRECT)  
+}
+int main()
+{
+    int money = 20;
+    int n = 20/4;
+??? int all = n + nums(n);    // (WRONG)  all=8, n=5, =3
+
+    printf("%d",all);
+    return 0;
+}
