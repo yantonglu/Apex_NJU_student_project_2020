@@ -265,17 +265,18 @@ void insert_ret(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator BI)
 	}
 	else if (v->getType()->isFloatTy())
 	{
-		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v, Builder.getInt64Ty());
-		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)bitcastInst, Builder.getInt64Ty());
+		Instruction *ftuiInst = FPToUIInst::Create(Instruction::FPToUI, v, Builder.getInt64Ty());
+		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)ftuiInst, Builder.getInt64Ty());
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)zextInst}, "");
+		BB->getInstList().insert(BI, ftuiInst);
 		BB->getInstList().insert(BI, zextInst);
 		BB->getInstList().insert(BI, callInst);
 	}
 	else if (v->getType()->isDoubleTy())
 	{
-		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v, Builder.getInt64Ty());
-		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)bitcastInst}, "");
-		BB->getInstList().insert(BI, bitcastInst);
+		Instruction *ftuiInst = FPToUIInst::Create(Instruction::FPToUI, v, Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ftuiInst}, "");
+		BB->getInstList().insert(BI, ftuiInst);
 		BB->getInstList().insert(BI, callInst);
 	}
 	else
@@ -339,17 +340,18 @@ void insert_localvar(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator B
 	}
 	else if (v->getType()->isFloatTy())
 	{
-		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v, Builder.getInt64Ty());
-		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)bitcastInst, Builder.getInt64Ty());
+		Instruction *ftuiInst = FPToUIInst::Create(Instruction::FPToUI, v, Builder.getInt64Ty());
+		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)ftuiInst, Builder.getInt64Ty());
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)zextInst}, "");
+		BB->getInstList().insert(BI, ftuiInst);
 		BB->getInstList().insert(BI, zextInst);
 		BB->getInstList().insert(BI, callInst);
 	}
 	else if (v->getType()->isDoubleTy())
 	{
-		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v, Builder.getInt64Ty());
-		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)bitcastInst}, "");
-		BB->getInstList().insert(BI, bitcastInst);
+		Instruction *ftuiInst = FPToUIInst::Create(Instruction::FPToUI, v, Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ftuiInst}, "");
+		BB->getInstList().insert(BI, ftuiInst);
 		BB->getInstList().insert(BI, callInst);
 	}
 	else
@@ -392,17 +394,18 @@ void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicB
 	}
 	else if (v->getOperand(0)->getType()->isFloatTy())
 	{
-		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v->getOperand(0), Builder.getInt64Ty());
-		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)bitcastInst, Builder.getInt64Ty());
+		Instruction *ftuiInst = FPToUIInst::Create(Instruction::FPToUI, v->getOperand(0), Builder.getInt64Ty());
+		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)ftuiInst, Builder.getInt64Ty());
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)zextInst}, "");
+		BB->getInstList().insert(BI, ftuiInst);
 		BB->getInstList().insert(BI, zextInst);
 		BB->getInstList().insert(BI, callInst);
 	}
 	else if (v->getOperand(0)->getType()->isDoubleTy())
 	{
-		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v->getOperand(0), Builder.getInt64Ty());
-		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)bitcastInst}, "");
-		BB->getInstList().insert(BI, bitcastInst);
+		Instruction *ftuiInst = FPToUIInst::Create(Instruction::FPToUI, v->getOperand(0), Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ftuiInst}, "");
+		BB->getInstList().insert(BI, ftuiInst);
 		BB->getInstList().insert(BI, callInst);
 	}
 	else
@@ -447,17 +450,18 @@ void insert_before_switch(Module &M, BasicBlock *BB, Instruction *v, BasicBlock:
 	}
 	else if (v->getOperand(0)->getType()->isFloatTy())
 	{
-		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v->getOperand(0), Builder.getInt64Ty());
-		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)bitcastInst, Builder.getInt64Ty());
+		Instruction *ftuiInst = FPToUIInst::Create(Instruction::FPToUI, v->getOperand(0), Builder.getInt64Ty());
+		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)ftuiInst, Builder.getInt64Ty());
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)zextInst}, "");
+		BB->getInstList().insert(BI, ftuiInst);
 		BB->getInstList().insert(BI, zextInst);
 		BB->getInstList().insert(BI, callInst);
 	}
 	else if (v->getOperand(0)->getType()->isDoubleTy())
 	{
-		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v->getOperand(0), Builder.getInt64Ty());
-		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)bitcastInst}, "");
-		BB->getInstList().insert(BI, bitcastInst);
+		Instruction *ftuiInst = FPToUIInst::Create(Instruction::FPToUI, v->getOperand(0), Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ftuiInst}, "");
+		BB->getInstList().insert(BI, ftuiInst);
 		BB->getInstList().insert(BI, callInst);
 	}
 	else
