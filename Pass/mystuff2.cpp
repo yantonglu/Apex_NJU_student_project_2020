@@ -43,7 +43,7 @@ void insert_main_args2(Module &M, Function *F);
 void insert_localvar(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator BI);
 void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI);
 void insert_before_call(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI);
-
+void insert_before_switch(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI);
 
 //ID part
 extern int getID(Value* val,bool report=true);
@@ -134,6 +134,12 @@ struct mystuff2 : public ModulePass
 						//errs() << "插入中间变量\n";
 						insert_ret_and_store_inst(M, BB, Inst, inst);
 						//errs() << "插入中间变量成功\n";
+					}
+					else if (Inst->getOpcode() == Instruction::Switch)
+					{
+						//errs() << "插入switch\n";
+						insert_before_switch(M, BB, Inst, inst);
+						//errs() << "插入switch成功\n";
 					}
 					else if (Inst->getOpcode() != Instruction::Call 
 					&& getID(Inst, false) != -1)//指令排除表
@@ -250,8 +256,32 @@ void insert_ret(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator BI)
 		BB->getInstList().insert(BI, zextInst);
 		BB->getInstList().insert(BI, callInst);
 	}
+	else if (v->getType()->isPointerTy())
+	{
+		Instruction *ptrtointInst = PtrToIntInst::Create(Instruction::PtrToInt, v, Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ptrtointInst}, "");
+		BB->getInstList().insert(BI, ptrtointInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+	else if (v->getType()->isFloatTy())
+	{
+		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v, Builder.getInt64Ty());
+		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)bitcastInst, Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)zextInst}, "");
+		BB->getInstList().insert(BI, zextInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+	else if (v->getType()->isDoubleTy())
+	{
+		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v, Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)bitcastInst}, "");
+		BB->getInstList().insert(BI, bitcastInst);
+		BB->getInstList().insert(BI, callInst);
+	}
 	else
 	{
+		errs() << "插入call后返回值时遇到非int非指针非浮点类型，仅插入0，可能导致错误\n";
+		errs() << v->getType() << "\n";
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), Builder.getInt64(0)}, "");
 		BB->getInstList().insert(BI, callInst);
 	}
@@ -307,6 +337,23 @@ void insert_localvar(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator B
 		BB->getInstList().insert(BI, ptrtointInst);
 		BB->getInstList().insert(BI, callInst);
 	}
+	else if (v->getType()->isFloatTy())
+	{
+		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v, Builder.getInt64Ty());
+		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)bitcastInst, Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)zextInst}, "");
+		BB->getInstList().insert(BI, zextInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+	else if (v->getType()->isDoubleTy())
+	{
+		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v, Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)bitcastInst}, "");
+		BB->getInstList().insert(BI, bitcastInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+	else
+		errs() << "插入中间变量时发现非int非浮点非指针变量，放弃插入，可能导致错误\n";
 }
 
 void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI)
@@ -337,12 +384,29 @@ void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicB
 	else if (v->getOperand(0)->getType()->isPointerTy())
 	{
 		//这里可能有问题
+		errs() << "插入返回值或者store时出现指针变量，可能不能正确插入\n";
 		Instruction *ptrtointInst = PtrToIntInst::Create(Instruction::PtrToInt, v->getOperand(0), Builder.getInt64Ty());
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ptrtointInst}, "");
 		BB->getInstList().insert(BI, ptrtointInst);
 		BB->getInstList().insert(BI, callInst);
 	}
-	
+	else if (v->getOperand(0)->getType()->isFloatTy())
+	{
+		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v->getOperand(0), Builder.getInt64Ty());
+		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)bitcastInst, Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)zextInst}, "");
+		BB->getInstList().insert(BI, zextInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+	else if (v->getOperand(0)->getType()->isDoubleTy())
+	{
+		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v->getOperand(0), Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)bitcastInst}, "");
+		BB->getInstList().insert(BI, bitcastInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+	else
+		errs() << "插入返回值或者store时出现非int非浮点非指针变量，放弃插入，可能导致问题\n";
 }
 
 void insert_before_call(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI)
@@ -353,7 +417,54 @@ void insert_before_call(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::i
 	BB->getInstList().insert(BI, callInst);
 }
 
+void insert_before_switch(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI)
+{
+	Function *func_instrument = M.getFunction("__instrument1");
+	IRBuilder<> Builder((BasicBlock *)&*BB);
+	if (v->getOperand(0)->getType()->isIntegerTy())
+	{
+		if (v->getOperand(0)->getType() == Builder.getInt64Ty())
+		{
+			Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), v->getOperand(0)}, "");
+			BB->getInstList().insert(BI, callInst);
+		}
+		else
+		{
+			Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, v->getOperand(0), Builder.getInt64Ty());
+			Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), zextInst}, "");
+			BB->getInstList().insert(BI, zextInst);
+			BB->getInstList().insert(BI, callInst);
+		}
+	}
+	else if (v->getOperand(0)->getType()->isPointerTy())
+	{
+		//这里可能有问题
+		errs() << "插入switch时出现指针变量，可能不能正确插入\n";
+		Instruction *ptrtointInst = PtrToIntInst::Create(Instruction::PtrToInt, v->getOperand(0), Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ptrtointInst}, "");
+		BB->getInstList().insert(BI, ptrtointInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+	else if (v->getOperand(0)->getType()->isFloatTy())
+	{
+		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v->getOperand(0), Builder.getInt64Ty());
+		Instruction *zextInst = ZExtInst::Create(Instruction::ZExt, (Value *)bitcastInst, Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)zextInst}, "");
+		BB->getInstList().insert(BI, zextInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+	else if (v->getOperand(0)->getType()->isDoubleTy())
+	{
+		Instruction *bitcastInst = BitCastInst::Create(Instruction::BitCast, v->getOperand(0), Builder.getInt64Ty());
+		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)bitcastInst}, "");
+		BB->getInstList().insert(BI, bitcastInst);
+		BB->getInstList().insert(BI, callInst);
+	}
+	else
+		errs() << "插入switch时出现非int非浮点非指针变量，放弃插入，可能导致问题\n";
+}
 
 char mystuff2::ID = 0;
 static RegisterPass<mystuff2> X("mystuff2", "Hello World Pass");
+
 
