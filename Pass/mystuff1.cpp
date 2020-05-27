@@ -51,9 +51,12 @@ void print_CastInst(Instruction*Inst ,raw_fd_ostream &out);
 void print_BinopInst(Instruction*Inst ,raw_fd_ostream &out);
 void print_StoreInst(Instruction*Inst ,raw_fd_ostream &out);
 void print_PhiInst(Instruction*Inst ,raw_fd_ostream &out);
+void print_SwitchInst(Instruction*Inst ,raw_fd_ostream &out);
 std::string Instname(Instruction * inst);
 void PrintValueType(Type* type,raw_fd_ostream &out);
 void print_llvmfunc(raw_fd_ostream &out);
+
+void print_constant(Value* val ,raw_fd_ostream &out);
 
 
 
@@ -179,6 +182,16 @@ void PrintValueType(Type* type,raw_fd_ostream &out)
 		is_array=false;
 		out<<" "<<type->getStructNumElements();
 	}else   
+	if(data_type=="TypeFloat")	
+	{
+		out <<" 32";
+	}
+	else
+	if(data_type=="TypeDouble")
+	{
+		out <<" 64";
+	}
+	else
 	{
 		if(is_array&&(type->getIntegerBitWidth()==8||type->getIntegerBitWidth()==32))
 			is_uint8 =true;
@@ -233,7 +246,8 @@ void print_global_variable(Module &M,raw_fd_ostream & out)
 		else
 		{
 			Constant * constant=GV->getInitializer();
-			if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>((Value*)constant))
+			print_constant((Value*)constant,out);
+	/*		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>((Value*)constant))
 			if(CI->getBitWidth()<=32)
 			{
 				
@@ -244,7 +258,7 @@ void print_global_variable(Module &M,raw_fd_ostream & out)
 			{
 				long long int number=CI->getSExtValue();
 				out<<" "<<number<<" ";
-			}
+			} */
 			
 		}
 		
@@ -315,7 +329,7 @@ std::string Instname(Instruction * inst)
    	// Terminators
      case Instruction::Ret:    name="ReturnInst";break;
      case Instruction::Br:     name= "BranchInst";break;
-     case Instruction::Switch: name="BranchInst";break;
+     case Instruction::Switch: name="SwitchInst";break;
      case Instruction::IndirectBr: error=true;name="indirectbr";break;
      case Instruction::Invoke: error=true;name="invoke";break;
      case Instruction::Resume: error=true;name="resume";break;
@@ -438,6 +452,9 @@ void print_instruction(Instruction *Inst,raw_fd_ostream &out)
 	if(name=="BranchInst")
 		print_BranchInst(Inst,out);
 	else
+	if(name=="SwitchInst")
+		print_SwitchInst(Inst,out);
+	else
 	if(name=="CmpInst")
 		print_CmpInst(Inst,out);
 	else
@@ -461,7 +478,8 @@ void print_instruction(Instruction *Inst,raw_fd_ostream &out)
 		
 		Value * op=Inst->getOperand(i);
 		
-		
+		print_constant(op,out);
+		/*
 		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(op))
 		{
 			if(CI->getBitWidth()<=32)
@@ -479,7 +497,7 @@ void print_instruction(Instruction *Inst,raw_fd_ostream &out)
 		else
 		{
 			out<<"(iref "<< getID((Value*)op)<<")";		
-		}
+		}*/
 	}
 	
 	out<<")\n";
@@ -495,8 +513,9 @@ void print_PhiInst(Instruction*Inst ,raw_fd_ostream &out)
 	{
 		Value* val=phi->getIncomingValue(i);
 		BasicBlock * BB=phi->getIncomingBlock(i);
-		out<<"(";
-		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(val))
+		out<<"(PhiCase ";
+		print_constant(val,out);
+		/*if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(val))
 		{
 			if(CI->getBitWidth()<=32)
 			{
@@ -513,7 +532,7 @@ void print_PhiInst(Instruction*Inst ,raw_fd_ostream &out)
 		else
 		{
 			out<<"(iref "<< getID((Value*)val)<<")";		
-		}
+		}*/
 		out<<" ";
 		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>((Value*)BB))
 		{
@@ -536,9 +555,37 @@ void print_PhiInst(Instruction*Inst ,raw_fd_ostream &out)
 		out<<")";
 		
 	}
-	out<<" "<<num;
+	
 
 
+}
+void print_constant(Value* val ,raw_fd_ostream &out)
+{
+	if(getID(val,false)==-1 )
+	{	
+		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(val))
+		{	
+			int number=CI->getSExtValue();
+			out<<" "<<number<<" ";
+		}
+		else
+		if(llvm::ConstantFP *CI =dyn_cast<llvm::ConstantFP>(val))
+		{
+			errs()<<"float type\n";
+			APFloat number=CI->getValueAPF();
+			APInt x=number.bitcastToAPInt();
+			out<<" "<<x.getZExtValue()<<" ";
+			
+		}
+		else
+		{
+				getID(val);  
+		}
+	}
+	else
+	{
+			out<<"(iref "<< getID(val)<<")";
+	}	
 }
 void print_StoreInst(Instruction*Inst ,raw_fd_ostream &out)
 {
@@ -546,12 +593,21 @@ void print_StoreInst(Instruction*Inst ,raw_fd_ostream &out)
 	Value * ptr=inst->getPointerOperand();
 	Value * val=inst->getValueOperand();
 	out<<"(iref "<< getID(ptr)<<") ";
-	
+	//print_constant((Value*)val,out);
 	if(getID(val,false)==-1 )
 		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(val))
 		{	
 			int number=CI->getSExtValue();
 			out<<" "<<number<<" ";
+		}
+		else
+		if(llvm::ConstantFP *CI =dyn_cast<llvm::ConstantFP>(val))
+		{
+			APFloat number=CI->getValueAPF();
+			APInt x=number.bitcastToAPInt();
+			
+			out<<" "<<x.getZExtValue()<<" ";
+			
 		}
 		else
 		{
@@ -623,7 +679,9 @@ void print_CallInst(Instruction* Inst,raw_fd_ostream &out)
 	{
 		out<<"(CallParam";
 		Value * op=Inst->getOperand(i);
-
+		print_constant((Value*)op,out);
+		PrintValueType(op->getType(),out);
+		/*
 		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(op))
 		{
 			if(CI->getBitWidth()<=32)
@@ -643,6 +701,7 @@ void print_CallInst(Instruction* Inst,raw_fd_ostream &out)
 			out<<" (iref "<<getID(op)<<")";
 			PrintValueType(op->getType(),out);		
 		}
+		*/
 		out<<") ";
 	}
 	
@@ -657,7 +716,53 @@ void print_BranchInst(Instruction* Inst,raw_fd_ostream &out)
 		
 		Value * op=Inst->getOperand(i);
 		out<<"(iref "<<getID(op)<<")";
+	}
 }
+void print_SwitchInst(Instruction* Inst,raw_fd_ostream &out)
+{  
+	SwitchInst * sw=(SwitchInst *)Inst;
+	Value * condition = sw->getCondition();
+	print_constant((Value*)condition,out);
+	/*if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(condition))
+	{
+		if(CI->getBitWidth()<=32)
+		{
+			int number=CI->getSExtValue();
+			out<<" "<<number<<" ";
+		}
+		else
+		{
+			long long int number=CI->getSExtValue();
+			out<<" "<<number<<" ";
+		}
+	}
+	else
+	{
+		out<<" (iref "<<getID(condition)<<") ";
+	} */
+	int i=1;
+	while(i<(int)(Inst->getNumOperands())-1)
+	{
+		
+		Value * bb=Inst->getOperand(i);
+		Value * val=Inst->getOperand(i+1);
+		out<<"(SwitchCase ";
+		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(val))
+		{
+			if(CI->getBitWidth()<=32)
+			{
+				int number=CI->getSExtValue();
+				out<<" "<<number<<" ";
+			}
+			else
+			{
+				long long int number=CI->getSExtValue();
+				out<<" "<<number<<" ";
+			}
+		}
+		out<<"(iref "<<getID(bb)<<"))";
+		i+=2;
+	}
 }
 
 
@@ -672,24 +777,7 @@ void print_CmpInst(Instruction*Inst ,raw_fd_ostream &out)
 		
 		Value * op=Inst->getOperand(i);
 		
-		
-		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(op))
-		{
-			if(CI->getBitWidth()<=32)
-			{
-				int number=CI->getSExtValue();
-				out<<" "<<number;
-			}
-			else
-			{
-				long long int number=CI->getSExtValue();
-				out<<" "<<number;
-			}
-		}
-		else
-		{
-			out<<"(iref "<<getID(op)<<")";		
-		}
+		print_constant((Value*)op,out);
 	}
 
 }
@@ -713,8 +801,8 @@ void print_BinopInst(Instruction*Inst ,raw_fd_ostream &out)
 		
 		Value * op=Inst->getOperand(i);
 		
-		
-		if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(op))
+		print_constant((Value*)op,out);
+		/*if(llvm::ConstantInt *CI =dyn_cast<llvm::ConstantInt>(op))
 		{
 			if(CI->getBitWidth()<=32)
 		  	{
@@ -730,7 +818,7 @@ void print_BinopInst(Instruction*Inst ,raw_fd_ostream &out)
 		else
 		{
 			out<<"(iref "<< getID((Value*)op)<<")";		
-		}
+		}*/
 	}
 }
 
@@ -929,5 +1017,9 @@ bool check_pollute(Value* val)
 		return false;
 }
 
+
+
+
 char mystuff1::ID = 0;
 static RegisterPass<mystuff1> X("mystuff1", "Hello World Pass");
+
