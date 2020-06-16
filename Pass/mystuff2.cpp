@@ -135,6 +135,12 @@ struct mystuff2 : public ModulePass
 						insert_ret_and_store_inst(M, BB, Inst, inst);
 						//errs() << "插入中间变量成功\n";
 					}
+					else if(Inst->getOpcode() == Instruction::Br)
+					{
+						//errs() << "插入中间变量\n";
+						insert_ret_and_store_inst(M, BB, Inst, inst);
+						//errs() << "插入中间变量成功\n";
+					}
 					else if (Inst->getOpcode() == Instruction::Switch)
 					{
 						//errs() << "插入switch\n";
@@ -281,8 +287,8 @@ void insert_ret(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator BI)
 	}
 	else
 	{
-		errs() << "插入call后返回值时遇到非int非指针非浮点类型，仅插入0，可能导致错误\n";
-		errs() << v->getType() << "\n";
+		errs() << getID(v) << " 插入call后返回值时遇到非int非指针非浮点类型，仅插入0，可能导致错误\n";
+		// errs() << v->getType() << "\n";
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), Builder.getInt64(0)}, "");
 		BB->getInstList().insert(BI, callInst);
 	}
@@ -355,7 +361,7 @@ void insert_localvar(Module &M, BasicBlock *BB, Value *v, BasicBlock::iterator B
 		BB->getInstList().insert(BI, callInst);
 	}
 	else
-		errs() << "插入中间变量时发现非int非浮点非指针变量，放弃插入，可能导致错误\n";
+		errs() << getID(v) << " 插入中间变量时发现非int非浮点非指针变量，放弃插入，可能导致错误\n";
 }
 
 void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI)
@@ -367,6 +373,10 @@ void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicB
 	{
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), Builder.getInt64(0)}, "");
 		BB->getInstList().insert(BI, callInst);
+	}
+	else if(v->getOpcode() == Instruction::Br && !v->getOperand(0)->getType()->isIntegerTy())
+	{
+		return;
 	}
 	else if (v->getOperand(0)->getType()->isIntegerTy())
 	{
@@ -386,7 +396,7 @@ void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicB
 	else if (v->getOperand(0)->getType()->isPointerTy())
 	{
 		//这里可能有问题
-		errs() << "插入返回值或者store时出现指针变量，可能不能正确插入\n";
+		errs() << getID(v) << " 插入返回值或者store时出现指针变量，可能不能正确插入\n";
 		Instruction *ptrtointInst = PtrToIntInst::Create(Instruction::PtrToInt, v->getOperand(0), Builder.getInt64Ty());
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ptrtointInst}, "");
 		BB->getInstList().insert(BI, ptrtointInst);
@@ -409,7 +419,7 @@ void insert_ret_and_store_inst(Module &M, BasicBlock *BB, Instruction *v, BasicB
 		BB->getInstList().insert(BI, callInst);
 	}
 	else
-		errs() << "插入返回值或者store时出现非int非浮点非指针变量，放弃插入，可能导致问题\n";
+		errs() << getID(v) << " 插入返回值或者store时出现非int非浮点非指针变量，放弃插入，可能导致问题\n";
 }
 
 void insert_before_call(Module &M, BasicBlock *BB, Instruction *v, BasicBlock::iterator BI)
@@ -442,7 +452,7 @@ void insert_before_switch(Module &M, BasicBlock *BB, Instruction *v, BasicBlock:
 	else if (v->getOperand(0)->getType()->isPointerTy())
 	{
 		//这里可能有问题
-		errs() << "插入switch时出现指针变量，可能不能正确插入\n";
+		errs() << getID(v) << " 插入switch时出现指针变量，可能不能正确插入\n";
 		Instruction *ptrtointInst = PtrToIntInst::Create(Instruction::PtrToInt, v->getOperand(0), Builder.getInt64Ty());
 		Instruction *callInst = CallInst::Create(func_instrument, ArrayRef<Value *>{Builder.getInt64(getID(v)), (Value *)ptrtointInst}, "");
 		BB->getInstList().insert(BI, ptrtointInst);
@@ -465,7 +475,7 @@ void insert_before_switch(Module &M, BasicBlock *BB, Instruction *v, BasicBlock:
 		BB->getInstList().insert(BI, callInst);
 	}
 	else
-		errs() << "插入switch时出现非int非浮点非指针变量，放弃插入，可能导致问题\n";
+		errs() << getID(v) << " 插入switch时出现非int非浮点非指针变量，放弃插入，可能导致问题\n";
 }
 
 char mystuff2::ID = 0;
