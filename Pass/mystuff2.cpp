@@ -116,7 +116,6 @@ struct mystuff2 : public ModulePass
 			for (llvm::Function::iterator bb = F->begin(); bb != F->end(); ++bb)
 			{
 				BasicBlock *BB = &*bb;
-				insert_basicblock(M, BB);
 				//errs() << "开始遍历指令\n";
 
 				for (BasicBlock::InstListType::iterator inst = BB->begin(); inst != BB->end(); ++inst)
@@ -196,6 +195,8 @@ struct mystuff2 : public ModulePass
 						//errs() << "插入返回值成功\n";
 					}
 				}
+				insert_basicblock(M, BB);
+				//errs() << "插入基本块成功\n";
 			}
 		}
 		return 1;
