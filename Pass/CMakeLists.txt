@@ -10,7 +10,7 @@ if(WIN32 OR CYGWIN)
   set(LLVM_LINK_COMPONENTS Core Support)
 endif()
 
-add_llvm_loadable_module(LLVMHello MODULE BUILDTREE_ONLY
+add_llvm_library(LLVMHello MODULE BUILDTREE_ONLY
   mystuff1.cpp
   mystuff2.cpp
   ExpandConstantExpr.cpp
